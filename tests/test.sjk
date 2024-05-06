@@ -1,2 +1,2 @@
 def a;
-1 + 2.1 >> a >> def b;
+"hello sjk" >> a >> def b;

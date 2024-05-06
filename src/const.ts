@@ -9,8 +9,8 @@
 export enum TokenType {
     /** 未知 */
     UNKNOWN = "UNKNOWN",
-    /** 整数 */
-    INTEGER = "INTEGER",
+    /** 数字 */
+    NUMBER = "NUMBER",
     /** 字符串 */
     STRING = "STRING",
     /** 运算符 */
@@ -53,6 +53,7 @@ export enum SymbolType {
     LEFT_ANGLE_BRACKET = "<",
     RIGHT_ANGLE_BRACKET = ">",
     SEMICOLON = ";",
+    DOUBLE_QUOTATION = '"',
 }
 
 // 符号字符
@@ -112,6 +113,8 @@ export enum ASTNodeType {
     ASSIGNMENT = "ASSIGNMENT",
     /** 数字字面量 */
     NUMBER_LITERAL = "NUMBER_LITERAL",
+    /** 字符串字面量 */
+    STRING_LITERAL = "STRING_LITERAL",
     /** 标识符 */
     IDENTIFIER = "IDENTIFIER",
     /** 定义 */

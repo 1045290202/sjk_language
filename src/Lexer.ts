@@ -86,6 +86,20 @@ export default class Lexer {
         return [type, res as OperatorType];
     }
 
+    string() {
+        let res: string = "";
+        if (!this._isDoubleQuotation()) {
+            throw new SyntaxError("Unexpected character");
+        }
+        this.advance();
+        while (!this._isDoubleQuotation()) {
+            res += this.curChar;
+            this.advance();
+        }
+        this.advance();
+        return res;
+    }
+
     getNextToken() {
         while (this.curChar != null) {
             if (this._isWhitespace()) {
@@ -93,7 +107,7 @@ export default class Lexer {
                 continue;
             }
             if (this._isDigit()) {
-                return new Token(TokenType.INTEGER, this.digit());
+                return new Token(TokenType.NUMBER, this.digit());
             }
             if (this._isLetter()) {
                 const str: string = this.identifier();
@@ -101,6 +115,9 @@ export default class Lexer {
                     return new Token(this.keyWord(str), str);
                 }
                 return new Token(TokenType.IDENTIFIER, str);
+            }
+            if (this._isDoubleQuotation()) {
+                return new Token(TokenType.STRING, this.string());
             }
             if (this._isSymbol()) {
                 const [type, value] = this.symbol();
@@ -125,6 +142,10 @@ export default class Lexer {
 
     private _isKeyWord(char: string): char is KeyWordType {
         return char != null && KEY_WORD_SET.has(char as any);
+    }
+
+    private _isDoubleQuotation(char: string | null = this.curChar) {
+        return char != null && char === '"';
     }
 
     private _isSymbol(char: string | null = this.curChar) {

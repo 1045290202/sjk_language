@@ -14,6 +14,7 @@ import Assignment from "./ast/Assignment";
 import NumberLiteral from "./ast/NumberLiteral";
 import Identifier from "./ast/Identifier";
 import Eos from "./ast/Eos";
+import StringLiteral from "./ast/StringLiteral";
 
 export default class Generator {
     // 生成方法的映射
@@ -25,6 +26,7 @@ export default class Generator {
         [ASTNodeType.NUMBER_LITERAL]: this._generateNumberLiteral.bind(this),
         [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
         [ASTNodeType.EOS]: this._generateEos.bind(this),
+        [ASTNodeType.STRING_LITERAL]: this._generateStringLiteral.bind(this),
     } as const;
 
     private _parser: Parser;
@@ -86,6 +88,15 @@ export default class Generator {
      */
     private _generateNumberLiteral(node: NumberLiteral) {
         return node.value;
+    }
+
+    /**
+     * 生成字符串
+     * @param node
+     * @private
+     */
+    private _generateStringLiteral(node: StringLiteral) {
+        return `"${node.value}"`;
     }
 
     /**

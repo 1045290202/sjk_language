@@ -8,7 +8,7 @@ import ASTNode from "./ASTNode";
 import { ASTNodeType } from "../const";
 
 export default class Program extends ASTNode {
-    body: ASTNode[] = [];
+    readonly body: ASTNode[] = [];
     constructor() {
         super(ASTNodeType.PROGRAM);
     }

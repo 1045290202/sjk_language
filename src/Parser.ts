@@ -15,6 +15,7 @@ import BinaryExpression from "./ast/BinaryExpression";
 import Assignment from "./ast/Assignment";
 import Definition from "./ast/Definition";
 import Eos from "./ast/Eos";
+import StringLiteral from "./ast/StringLiteral";
 
 export default class Parser {
     private _tokens: Token[] = [];
@@ -53,8 +54,12 @@ export default class Parser {
     parse() {
         this._tokens.forEach((token) => {
             switch (token.type) {
-                case TokenType.INTEGER: {
+                case TokenType.NUMBER: {
                     this._astNodeStack.push(new NumberLiteral(token.value!));
+                    break;
+                }
+                case TokenType.STRING: {
+                    this._astNodeStack.push(new StringLiteral(token.value!));
                     break;
                 }
                 case TokenType.IDENTIFIER: {
@@ -110,7 +115,7 @@ export default class Parser {
     walk(): ASTNode {
         const token = this.token;
         switch (token.type) {
-            case TokenType.INTEGER: {
+            case TokenType.NUMBER: {
                 const node = new NumberLiteral(token.value!);
                 this.advance();
                 return node;

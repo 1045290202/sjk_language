@@ -10,7 +10,7 @@ import Identifier from "./Identifier";
 
 export default class Definition extends ASTNode {
     identifier: Identifier | null;
-    
+
     constructor(identifier: Identifier | null) {
         super(ASTNodeType.DEFINITION);
         this.identifier = identifier;

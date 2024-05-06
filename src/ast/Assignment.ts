@@ -8,13 +8,12 @@ import ASTNode from "./ASTNode";
 import { ASTNodeType } from "../const";
 
 export default class Assignment extends ASTNode {
-    valueNode: ASTNode;
-    targetNode: ASTNode;
-    
+    readonly valueNode: ASTNode;
+    readonly targetNode: ASTNode;
+
     constructor(valueNode: ASTNode, targetNode: ASTNode) {
         super(ASTNodeType.ASSIGNMENT);
         this.valueNode = valueNode;
         this.targetNode = targetNode;
     }
 }
-

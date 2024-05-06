@@ -8,8 +8,8 @@ import ASTNode from "./ASTNode";
 import { ASTNodeType } from "../const";
 
 export default class Identifier extends ASTNode {
-    name: string;
-    
+    readonly name: string;
+
     constructor(name: string) {
         super(ASTNodeType.IDENTIFIER);
         this.name = name;

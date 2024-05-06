@@ -8,10 +8,10 @@ import ASTNode from "./ASTNode";
 import { ASTNodeType, BinaryOperatorType } from "../const";
 
 export default class BinaryExpression extends ASTNode {
-    left: ASTNode;
-    operator: BinaryOperatorType;
-    right: ASTNode;
-    
+    readonly left: ASTNode;
+    readonly operator: BinaryOperatorType;
+    readonly right: ASTNode;
+
     constructor(left: ASTNode, operator: BinaryOperatorType, right: ASTNode) {
         super(ASTNodeType.BINARY_EXPRESSION);
         this.left = left;

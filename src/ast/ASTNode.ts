@@ -7,8 +7,8 @@
 import { ASTNodeType } from "../const";
 
 export default class ASTNode {
-    type: ASTNodeType;
-    
+    readonly type: ASTNodeType;
+
     constructor(type: ASTNodeType) {
         this.type = type;
     }
