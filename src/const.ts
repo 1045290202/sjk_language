@@ -54,6 +54,14 @@ export enum SymbolType {
     RIGHT_ANGLE_BRACKET = ">",
     SEMICOLON = ";",
     DOUBLE_QUOTATION = '"',
+    SINGLE_QUOTATION = "'",
+    LEFT_PARENTHESIS = "(",
+    RIGHT_PARENTHESIS = ")",
+    LEFT_BRACKET = "[",
+    RIGHT_BRACKET = "]",
+    LEFT_BRACE = "{",
+    RIGHT_BRACE = "}",
+    DOT = ".",
 }
 
 // 符号字符
@@ -70,20 +78,22 @@ export enum OperatorType {
     LESS = "<",
     EQUAL = "=",
     ASSIGN = ">>",
+    PIPE = "->",
+    DOT = ".",
 }
 
 // 运算符
 export const OPERATOR_SET: Readonly<Set<OperatorType>> = new Set<OperatorType>(Object.values(OperatorType));
 
 export enum BinaryOperatorType {
-    PLUS = "+",
-    MINUS = "-",
-    MULTIPLY = "*",
-    DIVIDE = "/",
-    GREATER = ">",
-    LESS = "<",
-    EQUAL = "=",
-    ASSIGN = ">>",
+    PLUS = OperatorType.PLUS,
+    MINUS = OperatorType.MINUS,
+    MULTIPLY = OperatorType.MULTIPLY,
+    DIVIDE = OperatorType.DIVIDE,
+    LESS = OperatorType.LESS,
+    GREATER = OperatorType.GREATER,
+    EQUAL = OperatorType.EQUAL,
+    ASSIGN = OperatorType.ASSIGN,
 }
 
 // 双目运算符
@@ -91,7 +101,7 @@ export const BINARY_OPERATOR_SET: Readonly<Set<BinaryOperatorType>> = new Set<Bi
     Object.values(BinaryOperatorType),
 );
 
-export const OPERATOR_TO_JS_OPERATOR: Readonly<Record<BinaryOperatorType, string>> = {
+export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType, string>>> = {
     [BinaryOperatorType.PLUS]: "+",
     [BinaryOperatorType.MINUS]: "-",
     [BinaryOperatorType.MULTIPLY]: "*",
@@ -109,6 +119,8 @@ export enum ASTNodeType {
     PROGRAM = "PROGRAM",
     /** 双目运算表达式 */
     BINARY_EXPRESSION = "BINARY_EXPRESSION",
+    /** 管道 */
+    PIPE = "PIPE",
     /** 赋值 */
     ASSIGNMENT = "ASSIGNMENT",
     /** 数字字面量 */
@@ -119,4 +131,6 @@ export enum ASTNodeType {
     IDENTIFIER = "IDENTIFIER",
     /** 定义 */
     DEFINITION = "DEFINITION",
+    /** 点运算 */
+    DOT = "DOT",
 }

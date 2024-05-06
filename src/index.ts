@@ -10,7 +10,7 @@ import Parser from "./Parser";
 import Generator from "./Generator";
 import * as fs from "node:fs";
 
-(async (g: typeof globalThis) => {
+(async (_: typeof globalThis) => {
     const sourceFilePath = process.argv[process.argv.length - 1];
     if (!sourceFilePath) {
         console.error("Please specify source file");
@@ -20,12 +20,17 @@ import * as fs from "node:fs";
     const input: string = await readSourceFile(sourceFilePath);
     console.log("input:\n%s", input);
     const lexer: Lexer = new Lexer(input);
-    const parser: Parser = new Parser(lexer);
+    lexer.lex();
+    // console.log(JSON.stringify(lexer.tokens, null, 2));
+    const parser: Parser = new Parser(lexer.tokens);
     parser.parse();
     // console.log(JSON.stringify(parser.ast, null, 2));
     const generator: Generator = new Generator(parser);
     const output: string = generator.generate();
     console.log("\noutput:\n%s", output);
+
+    console.log("run js:");
+    eval(output);
 })(globalThis);
 
 async function readSourceFile(filePath: string) {

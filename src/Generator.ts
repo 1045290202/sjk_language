@@ -15,6 +15,8 @@ import NumberLiteral from "./ast/NumberLiteral";
 import Identifier from "./ast/Identifier";
 import Eos from "./ast/Eos";
 import StringLiteral from "./ast/StringLiteral";
+import Dot from "./ast/Dot";
+import Pipe from "./ast/Pipe";
 
 export default class Generator {
     // 生成方法的映射
@@ -27,6 +29,8 @@ export default class Generator {
         [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
         [ASTNodeType.EOS]: this._generateEos.bind(this),
         [ASTNodeType.STRING_LITERAL]: this._generateStringLiteral.bind(this),
+        [ASTNodeType.DOT]: this._generateDot.bind(this),
+        [ASTNodeType.PIPE]: this._generatePipe.bind(this),
     } as const;
 
     private _parser: Parser;
@@ -57,7 +61,11 @@ export default class Generator {
      * @private
      */
     private _generateBinaryExpression(node: BinaryExpression) {
+        // switch (node.operator) {
+        //     default: {
         return `${this.generate(node.left)} ${OPERATOR_TO_JS_OPERATOR[node.operator]} ${this.generate(node.right)}`;
+        //     }
+        // }
     }
 
     /**
@@ -109,11 +117,38 @@ export default class Generator {
     }
 
     /**
-     * 生成结束
+     * 生成点
      * @param node
      * @private
      */
-    private _generateEos(node: Eos) {
+    private _generateDot(node: Dot) {
+        if (!node.parentNode) {
+            throw new SyntaxError("There must be an identifier before the dot");
+        }
+        if (!node.childNode) {
+            throw new SyntaxError("There must be an identifier after the dot");
+        }
+        return `${this.generate(node.parentNode)}.${this.generate(node.childNode)}`;
+    }
+
+    /**
+     * 生成管道
+     * @param node
+     * @private
+     */
+    private _generatePipe(node: Pipe) {
+        if (!node.left) {
+            return `${this.generate(node.right)}()`;
+        }
+        return `${this.generate(node.right)}(${this.generate(node.left)})`;
+    }
+
+    /**
+     * 生成结束
+     * @param _
+     * @private
+     */
+    private _generateEos(_: Eos) {
         return ";\n";
     }
 

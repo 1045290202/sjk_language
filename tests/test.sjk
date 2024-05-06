@@ -1,2 +1,3 @@
-def a;
-"hello sjk" >> a >> def b;
+"hello" >> def a;
+"world" >> def b;
+a + " " + b -> console.log;

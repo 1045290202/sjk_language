@@ -12,20 +12,39 @@ import {
     OPERATOR_SET,
     OperatorType,
     SYMBOL_SET,
+    SymbolType,
     TokenType,
     WHITESPACE_SET,
 } from "./const";
 
 export default class Lexer {
     private _pos: number = 0;
+    private _tokens: Token[] = [];
     private readonly _input: string | null = null;
 
     get curChar(): string {
         return this._input![this._pos];
     }
 
+    get tokens(): readonly Token[] {
+        return this._tokens;
+    }
+
     constructor(input: string) {
         this._input = input;
+    }
+
+    /**
+     * 词法分析
+     */
+    lex() {
+        do {
+            const token = this.getNextToken();
+            if (token.type === TokenType.EOF) {
+                break;
+            }
+            this._tokens.push(token);
+        } while (true);
     }
 
     advance() {
@@ -100,11 +119,16 @@ export default class Lexer {
         return res;
     }
 
+    // noinspection t
     getNextToken() {
         while (this.curChar != null) {
             if (this._isWhitespace()) {
                 this.skipWhitespace();
                 continue;
+            }
+            if (this._isDot()) {
+                this.advance();
+                return new Token(TokenType.OPERATOR, OperatorType.DOT);
             }
             if (this._isDigit()) {
                 return new Token(TokenType.NUMBER, this.digit());
@@ -133,7 +157,7 @@ export default class Lexer {
     }
 
     private _isDigit(char: string | null = this.curChar) {
-        return char != null && ((char >= "0" && char <= "9") || char === ".");
+        return char != null && ((char >= "0" && char <= "9") || char === SymbolType.DOT);
     }
 
     private _isLetter(char: string | null = this.curChar) {
@@ -145,10 +169,18 @@ export default class Lexer {
     }
 
     private _isDoubleQuotation(char: string | null = this.curChar) {
-        return char != null && char === '"';
+        return char != null && char === SymbolType.DOUBLE_QUOTATION;
     }
 
     private _isSymbol(char: string | null = this.curChar) {
         return char != null && SYMBOL_SET.has(char as any);
+    }
+
+    private _isDot(char: string | null = this.curChar) {
+        return (
+            char != null &&
+            char === SymbolType.DOT &&
+            this._tokens[this._tokens.length - 1].type === TokenType.IDENTIFIER
+        );
     }
 }

@@ -5,8 +5,7 @@
  * @Description Token解析器
  */
 import type Token from "./Token";
-import { ASTNodeType, BINARY_OPERATOR_SET, BinaryOperatorType, TokenType } from "./const";
-import Lexer from "./Lexer";
+import { ASTNodeType, BINARY_OPERATOR_SET, BinaryOperatorType, OperatorType, TokenType } from "./const";
 import Program from "./ast/Program";
 import NumberLiteral from "./ast/NumberLiteral";
 import ASTNode from "./ast/ASTNode";
@@ -16,10 +15,22 @@ import Assignment from "./ast/Assignment";
 import Definition from "./ast/Definition";
 import Eos from "./ast/Eos";
 import StringLiteral from "./ast/StringLiteral";
+import Dot from "./ast/Dot";
+import Pipe from "./ast/Pipe";
 
 export default class Parser {
-    private _tokens: Token[] = [];
-    private _current: number = 0;
+    private _parseMap = {
+        [TokenType.NUMBER]: this._parseNumber.bind(this),
+        [TokenType.STRING]: this._parseString.bind(this),
+        [TokenType.IDENTIFIER]: this._parseIdentifier.bind(this),
+        [TokenType.OPERATOR]: this._parseOperator.bind(this),
+        [TokenType.KEYWORD]: this._parseKeyword.bind(this),
+        [TokenType.EOS]: this._parseEos.bind(this),
+        [TokenType.EOF]: null,
+        [TokenType.UNKNOWN]: this._unknownParse.bind(this),
+    };
+
+    private _tokens: readonly Token[];
     private _ast: Program = new Program();
     private _astNodeStack: ASTNode[] = [];
     private _operatorStack: Token[] = [];
@@ -28,69 +39,13 @@ export default class Parser {
         return this._ast;
     }
 
-    get token(): Token {
-        return this._tokens[this._current];
-    }
-
-    constructor(lexer: Lexer) {
-        do {
-            const token = lexer.getNextToken();
-            if (token.type === TokenType.EOF) {
-                break;
-            }
-            this._tokens.push(token);
-        } while (true);
-
-        // while (this._current < this._tokens.length) {
-        //     this._ast.body.push(this.walk());
-        // }
-    }
-
-    advance() {
-        this._current++;
-        return this.token;
+    constructor(tokens: readonly Token[]) {
+        this._tokens = tokens;
     }
 
     parse() {
-        this._tokens.forEach((token) => {
-            switch (token.type) {
-                case TokenType.NUMBER: {
-                    this._astNodeStack.push(new NumberLiteral(token.value!));
-                    break;
-                }
-                case TokenType.STRING: {
-                    this._astNodeStack.push(new StringLiteral(token.value!));
-                    break;
-                }
-                case TokenType.IDENTIFIER: {
-                    const before = this._astNodeStack[this._astNodeStack.length - 1];
-                    if (before && before.type === ASTNodeType.DEFINITION) {
-                        (before as Definition).identifier = new Identifier(token.value!);
-                    } else {
-                        this._astNodeStack.push(new Identifier(token.value!));
-                    }
-                    break;
-                }
-                case TokenType.OPERATOR: {
-                    this._handleOperator();
-                    if (BINARY_OPERATOR_SET.has(token.value as any)) {
-                        // 双目运算符
-                        this._operatorStack.push(token);
-                    } else {
-                        // 弹幕运算符
-                    }
-                    break;
-                }
-                case TokenType.KEYWORD: {
-                    this._astNodeStack.push(new Definition(null));
-                    break;
-                }
-                case TokenType.EOS: {
-                    this._handleOperator();
-                    this._astNodeStack.push(new Eos());
-                    break;
-                }
-            }
+        this._tokens.forEach((token: Token) => {
+            this._parseMap[token.type]?.(token);
         });
 
         this._handleOperator();
@@ -99,29 +54,95 @@ export default class Parser {
         return this._ast;
     }
 
+    private _parseNumber(token: Token) {
+        this._astNodeStack.push(new NumberLiteral(token.value!));
+    }
+
+    private _parseString(token: Token) {
+        this._astNodeStack.push(new StringLiteral(token.value!));
+    }
+
+    private _parseIdentifier(token: Token) {
+        const before: ASTNode = this._astNodeStack[this._astNodeStack.length - 1];
+        if (!before) {
+            this._astNodeStack.push(new Identifier(token.value!));
+            return;
+        }
+
+        const identifier: Identifier = new Identifier(token.value!);
+        switch (before.type) {
+            case ASTNodeType.DEFINITION: {
+                (before as Definition).identifier = identifier;
+                break;
+            }
+            case ASTNodeType.DOT: {
+                (before as Dot).childNode = identifier;
+                break;
+            }
+            default: {
+                this._astNodeStack.push(identifier);
+            }
+        }
+    }
+
+    private _parseOperator(token: Token) {
+        if (BINARY_OPERATOR_SET.has(token.value as any)) {
+            // 双目运算符
+            this._handleOperator();
+            this._operatorStack.push(token);
+        } else if (token.value === OperatorType.DOT) {
+            const before: ASTNode = this._astNodeStack[this._astNodeStack.length - 1];
+            const dot: Dot = new Dot();
+            if (!before) {
+                this._handleOperator();
+                this._astNodeStack.push(dot);
+            }
+            if (before.type === ASTNodeType.IDENTIFIER || before.type === ASTNodeType.DOT) {
+                dot.parentNode = before as Identifier | Dot;
+                this._astNodeStack.pop();
+            } else {
+                this._handleOperator();
+            }
+            this._astNodeStack.push(dot);
+        } else if (token.value === OperatorType.PIPE) {
+            this._handleOperator();
+            this._operatorStack.push(token);
+        } else {
+            this._handleOperator();
+        }
+    }
+
+    private _parseKeyword(_: Token) {
+        this._astNodeStack.push(new Definition(null));
+    }
+
+    private _parseEos(_: Token) {
+        this._handleOperator();
+        this._astNodeStack.push(new Eos());
+    }
+
+    private _unknownParse(token: Token) {
+        throw new SyntaxError(`Unknown token type '${token.type}'`);
+    }
+
     private _handleOperator() {
         while (this._operatorStack.length > 0) {
             const operator = this._operatorStack.pop()!;
             const right = this._astNodeStack.pop()!;
             const left = this._astNodeStack.pop()!;
-            if (operator.value === BinaryOperatorType.ASSIGN) {
-                this._astNodeStack.push(new Assignment(left, right));
-            } else {
-                this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
-            }
-        }
-    }
-
-    walk(): ASTNode {
-        const token = this.token;
-        switch (token.type) {
-            case TokenType.NUMBER: {
-                const node = new NumberLiteral(token.value!);
-                this.advance();
-                return node;
-            }
-            default: {
-                throw new Error(`Unexpected token: ${token.type}`);
+            switch (operator.value) {
+                case OperatorType.PIPE: {
+                    this._astNodeStack.push(new Pipe(left, right));
+                    break;
+                }
+                case BinaryOperatorType.ASSIGN: {
+                    this._astNodeStack.push(new Assignment(left, right));
+                    break;
+                }
+                default: {
+                    this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
+                    break;
+                }
             }
         }
     }
