@@ -1,0 +1,16 @@
+{
+  "name": "sjs",
+  "version": "0.1.0-beta1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rd /s /q dist && tsc",
+    "run": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.4.5"
+  }
+}
