@@ -17,37 +17,43 @@ import {
 } from "./const";
 
 export default class Lexer {
-    
     private _pos: number = 0;
     private readonly _input: string | null = null;
-    
+
     get curChar(): string {
         return this._input![this._pos];
     }
-    
+
     constructor(input: string) {
         this._input = input;
     }
-    
+
     advance() {
         this._pos++;
     }
-    
+
     skipWhitespace() {
         while (this._isWhitespace()) {
             this.advance();
         }
     }
-    
-    integer() {
+
+    digit() {
         let res: string = "";
+        let isFloat: boolean = false;
         while (this._isDigit()) {
+            if (this.curChar === ".") {
+                if (isFloat) {
+                    throw new SyntaxError("Invalid number");
+                }
+                isFloat = true;
+            }
             res += this.curChar;
             this.advance();
         }
         return res;
     }
-    
+
     identifier(): string | KeyWordType {
         let res: string = "";
         while (this._isLetter()) {
@@ -56,14 +62,14 @@ export default class Lexer {
         }
         return res;
     }
-    
+
     keyWord(keyWord: KeyWordType): TokenType {
         if (!KEY_WORD_SET.has(keyWord)) {
             throw new SyntaxError(`Unknown keyword '${keyWord}'`);
         }
         return TokenType.KEYWORD;
     }
-    
+
     symbol(): [TokenType, OperatorType | typeof END_OF_STATEMENT] {
         let res: string = "";
         while (this._isSymbol()) {
@@ -79,7 +85,7 @@ export default class Lexer {
         }
         return [type, res as OperatorType];
     }
-    
+
     getNextToken() {
         while (this.curChar != null) {
             if (this._isWhitespace()) {
@@ -87,7 +93,7 @@ export default class Lexer {
                 continue;
             }
             if (this._isDigit()) {
-                return new Token(TokenType.INTEGER, this.integer());
+                return new Token(TokenType.INTEGER, this.digit());
             }
             if (this._isLetter()) {
                 const str: string = this.identifier();
@@ -104,25 +110,24 @@ export default class Lexer {
         }
         return new Token(TokenType.EOF, null);
     }
-    
+
     private _isWhitespace(char: string | null = this.curChar) {
         return char != null && WHITESPACE_SET.has(char as any);
     }
-    
+
     private _isDigit(char: string | null = this.curChar) {
-        return char != null && char >= "0" && char <= "9";
+        return char != null && ((char >= "0" && char <= "9") || char === ".");
     }
-    
+
     private _isLetter(char: string | null = this.curChar) {
         return char != null && char >= "a" && char <= "z";
     }
-    
+
     private _isKeyWord(char: string): char is KeyWordType {
         return char != null && KEY_WORD_SET.has(char as any);
     }
-    
+
     private _isSymbol(char: string | null = this.curChar) {
         return char != null && SYMBOL_SET.has(char as any);
     }
-    
 }
