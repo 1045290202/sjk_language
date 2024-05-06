@@ -13,60 +13,105 @@ import Definition from "./ast/Definition";
 import Assignment from "./ast/Assignment";
 import NumberLiteral from "./ast/NumberLiteral";
 import Identifier from "./ast/Identifier";
+import Eos from "./ast/Eos";
 
 export default class Generator {
+    // 生成方法的映射
+    private _generateMethodMap = {
+        [ASTNodeType.PROGRAM]: this._generateProgram.bind(this),
+        [ASTNodeType.BINARY_EXPRESSION]: this._generateBinaryExpression.bind(this),
+        [ASTNodeType.DEFINITION]: this._generateDefinition.bind(this),
+        [ASTNodeType.ASSIGNMENT]: this._generateAssignment.bind(this),
+        [ASTNodeType.NUMBER_LITERAL]: this._generateNumberLiteral.bind(this),
+        [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
+        [ASTNodeType.EOS]: this._generateEos.bind(this),
+    } as const;
+
     private _parser: Parser;
-    
+
     constructor(parser: Parser) {
         this._parser = parser;
     }
-    
+
     generate(astNode: ASTNode = this._parser.ast): string {
-        switch (astNode.type) {
-            case ASTNodeType.PROGRAM: {
-                const node: Program = astNode as Program;
-                return node.body.map(this.generate.bind(this)).join("");
-            }
-            case ASTNodeType.BINARY_EXPRESSION: {
-                const node: BinaryExpression = astNode as BinaryExpression;
-                return `${this.generate(node.left)} ${OPERATOR_TO_JS_OPERATOR[node.operator]} ${this.generate(node.right)}`;
-            }
-            case ASTNodeType.DEFINITION: {
-                const node: Definition = astNode as Definition;
-                if (!node.identifier) {
-                    throw new SyntaxError("Missing identifier");
-                }
-                return `let ${node.identifier.name}`;
-            }
-            case ASTNodeType.ASSIGNMENT: {
-                const node: Assignment = astNode as Assignment;
-                return `${this.generate(node.targetNode)} = ${this.generate(node.valueNode)}`;
-            }
-            case ASTNodeType.NUMBER_LITERAL: {
-                const node: NumberLiteral = astNode as NumberLiteral;
-                return node.value;
-            }
-            case ASTNodeType.END: {
-                return ";";
-            }
-            case ASTNodeType.IDENTIFIER: {
-                const node: Identifier = astNode as Identifier;
-                return `${node.name}`;
-            }
-            default: {
-                throw new SyntaxError(`Unknown ast node type '${astNode.type}'`);
-            }
+        if (astNode.type in this._generateMethodMap) {
+            return this._generateMethodMap[astNode.type](astNode as any);
         }
+        return this._unknownGenerate(astNode);
     }
-    
+
     /**
-     * 生成Program
+     * 生成程序
      * @param node
      * @private
      */
     private _generateProgram(node: Program) {
         return node.body.map(this.generate.bind(this)).join("");
     }
-    
-    
+
+    /**
+     * 生成双目运算
+     * @param node
+     * @private
+     */
+    private _generateBinaryExpression(node: BinaryExpression) {
+        return `${this.generate(node.left)} ${OPERATOR_TO_JS_OPERATOR[node.operator]} ${this.generate(node.right)}`;
+    }
+
+    /**
+     * 生成定义
+     * @param node
+     * @private
+     */
+    private _generateDefinition(node: Definition) {
+        if (!node.identifier) {
+            throw new SyntaxError("Missing identifier");
+        }
+        return `let ${node.identifier.name}`;
+    }
+
+    /**
+     * 生成赋值
+     * @param node
+     * @private
+     */
+    private _generateAssignment(node: Assignment) {
+        return `${this.generate(node.targetNode)} = ${this.generate(node.valueNode)}`;
+    }
+
+    /**
+     * 生成数字
+     * @param node
+     * @private
+     */
+    private _generateNumberLiteral(node: NumberLiteral) {
+        return node.value;
+    }
+
+    /**
+     * 生成标识符
+     * @param node
+     * @private
+     */
+    private _generateIdentifier(node: Identifier) {
+        return node.name;
+    }
+
+    /**
+     * 生成结束
+     * @param node
+     * @private
+     */
+    private _generateEos(node: Eos) {
+        return ";\n";
+    }
+
+    /**
+     * 未知生成
+     * @param node
+     * @private
+     */
+    private _unknownGenerate(node: ASTNode): string {
+        throw new SyntaxError(`Unknown ast node type '${node.type}'`);
+    }
 }

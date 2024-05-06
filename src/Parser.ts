@@ -22,15 +22,15 @@ export default class Parser {
     private _ast: Program = new Program();
     private _astNodeStack: ASTNode[] = [];
     private _operatorStack: Token[] = [];
-    
+
     get ast(): Readonly<typeof this._ast> {
         return this._ast;
     }
-    
+
     get token(): Token {
         return this._tokens[this._current];
     }
-    
+
     constructor(lexer: Lexer) {
         do {
             const token = lexer.getNextToken();
@@ -39,19 +39,19 @@ export default class Parser {
             }
             this._tokens.push(token);
         } while (true);
-        
+
         // while (this._current < this._tokens.length) {
         //     this._ast.body.push(this.walk());
         // }
     }
-    
+
     advance() {
         this._current++;
         return this.token;
     }
-    
+
     parse() {
-        this._tokens.forEach(token => {
+        this._tokens.forEach((token) => {
             switch (token.type) {
                 case TokenType.INTEGER: {
                     this._astNodeStack.push(new NumberLiteral(token.value!));
@@ -59,7 +59,7 @@ export default class Parser {
                 }
                 case TokenType.IDENTIFIER: {
                     const before = this._astNodeStack[this._astNodeStack.length - 1];
-                    if (before && (before.type === ASTNodeType.DEFINITION)) {
+                    if (before && before.type === ASTNodeType.DEFINITION) {
                         (before as Definition).identifier = new Identifier(token.value!);
                     } else {
                         this._astNodeStack.push(new Identifier(token.value!));
@@ -80,19 +80,20 @@ export default class Parser {
                     this._astNodeStack.push(new Definition(null));
                     break;
                 }
-                // case TokenType.EOS: {
-                //     this._astNodeStack.push(new Eos());
-                //     break;
-                // }
+                case TokenType.EOS: {
+                    this._handleOperator();
+                    this._astNodeStack.push(new Eos());
+                    break;
+                }
             }
         });
-        
+
         this._handleOperator();
         this._ast.body.push(...this._astNodeStack);
-        
+
         return this._ast;
     }
-    
+
     private _handleOperator() {
         while (this._operatorStack.length > 0) {
             const operator = this._operatorStack.pop()!;
@@ -105,7 +106,7 @@ export default class Parser {
             }
         }
     }
-    
+
     walk(): ASTNode {
         const token = this.token;
         switch (token.type) {
@@ -119,5 +120,4 @@ export default class Parser {
             }
         }
     }
-    
 }

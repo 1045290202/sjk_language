@@ -9,6 +9,6 @@ import { ASTNodeType } from "../const";
 
 export default class Eos extends ASTNode {
     constructor() {
-        super(ASTNodeType.END);
+        super(ASTNodeType.EOS);
     }
 }

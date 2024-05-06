@@ -58,7 +58,7 @@ export enum SymbolType {
 // 符号字符
 export const SYMBOL_SET: Readonly<Set<SymbolType>> = new Set<SymbolType>(Object.values(SymbolType));
 
-export const END_OF_STATEMENT: string = ";"
+export const END_OF_STATEMENT: string = ";";
 
 export enum OperatorType {
     PLUS = "+",
@@ -86,7 +86,9 @@ export enum BinaryOperatorType {
 }
 
 // 双目运算符
-export const BINARY_OPERATOR_SET: Readonly<Set<BinaryOperatorType>> = new Set<BinaryOperatorType>(Object.values(BinaryOperatorType));
+export const BINARY_OPERATOR_SET: Readonly<Set<BinaryOperatorType>> = new Set<BinaryOperatorType>(
+    Object.values(BinaryOperatorType),
+);
 
 export const OPERATOR_TO_JS_OPERATOR: Readonly<Record<BinaryOperatorType, string>> = {
     [BinaryOperatorType.PLUS]: "+",
@@ -100,7 +102,8 @@ export const OPERATOR_TO_JS_OPERATOR: Readonly<Record<BinaryOperatorType, string
 };
 
 export enum ASTNodeType {
-    END = "END",
+    /** 语句结束 */
+    EOS = "EOS",
     /** 程序 */
     PROGRAM = "PROGRAM",
     /** 双目运算表达式 */

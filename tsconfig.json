@@ -13,7 +13,11 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "incremental": true,
-    "sourceMap": true
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "sourceMap": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src"
