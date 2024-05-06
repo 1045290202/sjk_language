@@ -1,6 +1,7 @@
 # 项目排除路径
-/dist/
-/node_modules/
-/.idea/
+/dist
+/node_modules
+/.idea
 package-lock.json
 *.tsbuildinfo
+/package-lock.json
