@@ -17,6 +17,7 @@ import StringLiteral from "./ast/StringLiteral";
 import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
 import Block from "./ast/Block";
+import Judgement from "./ast/Judgement";
 
 export default class Generator {
     // 生成方法的映射
@@ -31,6 +32,7 @@ export default class Generator {
         [ASTNodeType.DOT]: this._generateDot.bind(this),
         [ASTNodeType.PIPE]: this._generatePipe.bind(this),
         [ASTNodeType.BLOCK]: this._generateBlock.bind(this),
+        [ASTNodeType.JUDGEMENT]: this._generateJudgement.bind(this),
     } as const;
 
     private _parser: Parser;
@@ -170,6 +172,15 @@ export default class Generator {
             res += `${subRes};`;
         }
         return `${res}}`;
+    }
+
+    /**
+     * 生成判断
+     * @param node
+     * @private
+     */
+    private _generateJudgement(node: Judgement) {
+        return "";
     }
 
     /**

@@ -144,4 +144,6 @@ export enum ASTNodeType {
     DOT = "DOT",
     /** 块 */
     BLOCK = "BLOCK",
+    /** 判断 */
+    JUDGEMENT = "JUDGEMENT",
 }

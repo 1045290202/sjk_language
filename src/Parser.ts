@@ -30,7 +30,7 @@ export default class Parser {
         [TokenType.UNKNOWN]: this._unknownParse.bind(this),
     };
 
-    private _tokens: readonly Token[];
+    private readonly _tokens: readonly Token[];
     private _ast: Program = new Program();
     private _astNodeStack: ASTNode[] = [];
     private _operatorStack: Token[] = [];
@@ -38,10 +38,6 @@ export default class Parser {
 
     get ast(): Readonly<typeof this._ast> {
         return this._ast;
-    }
-
-    get tokenIndex(): number {
-        return this._tokenIndex;
     }
 
     constructor(tokens: readonly Token[]) {
