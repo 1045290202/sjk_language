@@ -40,6 +40,10 @@ export default class Parser {
         return this._ast;
     }
 
+    get tokenIndex(): number {
+        return this._tokenIndex;
+    }
+
     constructor(tokens: readonly Token[]) {
         this._tokens = tokens;
     }
@@ -125,23 +129,7 @@ export default class Parser {
                 break;
             }
             case SeparatorType.LEFT_BRACE: {
-                const subTokens: Token[] = [];
-                while (true) {
-                    const token: Token = this._tokens[++this._tokenIndex];
-                    if (!token) {
-                        break;
-                    }
-                    if (token.type === TokenType.SEPARATOR && token.value === SeparatorType.RIGHT_BRACE) {
-                        break;
-                    }
-                    subTokens.push(token);
-                }
-                const subParser = new Parser(subTokens);
-                subParser.parse();
-                const block = new Block();
-                block.body = subParser.ast.body;
-                this._astNodeStack.push(block);
-                // this._operatorStack.push(token);
+                this._handleBlock();
                 break;
             }
             case SeparatorType.RIGHT_BRACE: {
@@ -174,5 +162,35 @@ export default class Parser {
                 }
             }
         }
+    }
+
+    private _handleBlock() {
+        const subTokens: Token[] = [];
+        let unpairedLeftBrace: number = 1;
+        while (true) {
+            const token: Token = this._tokens[++this._tokenIndex];
+            if (!token) {
+                if (unpairedLeftBrace !== 0) {
+                    throw new SyntaxError("Missing '}'");
+                }
+                break;
+            }
+            if (token.type === TokenType.SEPARATOR) {
+                if (token.value === SeparatorType.RIGHT_BRACE) {
+                    unpairedLeftBrace--;
+                } else if (token.value === SeparatorType.LEFT_BRACE) {
+                    unpairedLeftBrace++;
+                }
+            }
+            if (unpairedLeftBrace === 0) {
+                break;
+            }
+            subTokens.push(token);
+        }
+        const subParser = new Parser(subTokens);
+        subParser.parse();
+        const block = new Block();
+        block.body = subParser.ast.body;
+        this._astNodeStack.push(block);
     }
 }

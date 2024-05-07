@@ -19,14 +19,20 @@ import * as fs from "node:fs";
 
     const input: string = await readSourceFile(sourceFilePath);
     console.log("input:\n%s", input);
+    // console.time("lex");
     const lexer: Lexer = new Lexer(input);
     lexer.lex();
+    // console.timeEnd("lex");
     // console.log(JSON.stringify(lexer.tokens, null, 2));
+    // console.time("parse");
     const parser: Parser = new Parser(lexer.tokens);
     parser.parse();
+    // console.timeEnd("parse");
     // console.log(JSON.stringify(parser.ast, null, 2));
+    // console.time("generate");
     const generator: Generator = new Generator(parser);
     const output: string = generator.generate();
+    // console.timeEnd("generate");
     console.log("\noutput:\n%s", output);
 
     console.log("\nrun js:");

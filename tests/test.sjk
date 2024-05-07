@@ -1,8 +1,5 @@
+"12311241234" >> def a;
+
 {
-    114.514 >> def a;
-    a >> def b;
-    {
-        b >> def c;
-        c -> console.log;
-    }
+    a -> console.log;
 }
