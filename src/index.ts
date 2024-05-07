@@ -29,7 +29,7 @@ import * as fs from "node:fs";
     const output: string = generator.generate();
     console.log("\noutput:\n%s", output);
 
-    console.log("run js:");
+    console.log("\nrun js:");
     eval(output);
 })(globalThis);
 

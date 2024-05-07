@@ -5,7 +5,7 @@
  * @Description Token解析器
  */
 import type Token from "./Token";
-import { ASTNodeType, BINARY_OPERATOR_SET, BinaryOperatorType, OperatorType, TokenType } from "./const";
+import { ASTNodeType, BINARY_OPERATOR_SET, BinaryOperatorType, OperatorType, SeparatorType, TokenType } from "./const";
 import Program from "./ast/Program";
 import NumberLiteral from "./ast/NumberLiteral";
 import ASTNode from "./ast/ASTNode";
@@ -13,10 +13,10 @@ import Identifier from "./ast/Identifier";
 import BinaryExpression from "./ast/BinaryExpression";
 import Assignment from "./ast/Assignment";
 import Definition from "./ast/Definition";
-import Eos from "./ast/Eos";
 import StringLiteral from "./ast/StringLiteral";
 import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
+import Block from "./ast/Block";
 
 export default class Parser {
     private _parseMap = {
@@ -25,7 +25,7 @@ export default class Parser {
         [TokenType.IDENTIFIER]: this._parseIdentifier.bind(this),
         [TokenType.OPERATOR]: this._parseOperator.bind(this),
         [TokenType.KEYWORD]: this._parseKeyword.bind(this),
-        [TokenType.EOS]: this._parseEos.bind(this),
+        [TokenType.SEPARATOR]: this._parseSeparator.bind(this),
         [TokenType.EOF]: null,
         [TokenType.UNKNOWN]: this._unknownParse.bind(this),
     };
@@ -34,6 +34,7 @@ export default class Parser {
     private _ast: Program = new Program();
     private _astNodeStack: ASTNode[] = [];
     private _operatorStack: Token[] = [];
+    private _tokenIndex: number = 0;
 
     get ast(): Readonly<typeof this._ast> {
         return this._ast;
@@ -44,9 +45,10 @@ export default class Parser {
     }
 
     parse() {
-        this._tokens.forEach((token: Token) => {
+        for (this._tokenIndex = 0; this._tokenIndex < this._tokens.length; this._tokenIndex++) {
+            const token: Token = this._tokens[this._tokenIndex];
             this._parseMap[token.type]?.(token);
-        });
+        }
 
         this._handleOperator();
         this._ast.body.push(...this._astNodeStack);
@@ -116,9 +118,36 @@ export default class Parser {
         this._astNodeStack.push(new Definition(null));
     }
 
-    private _parseEos(_: Token) {
-        this._handleOperator();
-        this._astNodeStack.push(new Eos());
+    private _parseSeparator(token: Token) {
+        switch (token.value) {
+            case SeparatorType.SEMICOLON: {
+                this._handleOperator();
+                break;
+            }
+            case SeparatorType.LEFT_BRACE: {
+                const subTokens: Token[] = [];
+                while (true) {
+                    const token: Token = this._tokens[++this._tokenIndex];
+                    if (!token) {
+                        break;
+                    }
+                    if (token.type === TokenType.SEPARATOR && token.value === SeparatorType.RIGHT_BRACE) {
+                        break;
+                    }
+                    subTokens.push(token);
+                }
+                const subParser = new Parser(subTokens);
+                subParser.parse();
+                const block = new Block();
+                block.body = subParser.ast.body;
+                this._astNodeStack.push(block);
+                // this._operatorStack.push(token);
+                break;
+            }
+            case SeparatorType.RIGHT_BRACE: {
+                break;
+            }
+        }
     }
 
     private _unknownParse(token: Token) {

@@ -13,10 +13,10 @@ import Definition from "./ast/Definition";
 import Assignment from "./ast/Assignment";
 import NumberLiteral from "./ast/NumberLiteral";
 import Identifier from "./ast/Identifier";
-import Eos from "./ast/Eos";
 import StringLiteral from "./ast/StringLiteral";
 import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
+import Block from "./ast/Block";
 
 export default class Generator {
     // 生成方法的映射
@@ -27,10 +27,10 @@ export default class Generator {
         [ASTNodeType.ASSIGNMENT]: this._generateAssignment.bind(this),
         [ASTNodeType.NUMBER_LITERAL]: this._generateNumberLiteral.bind(this),
         [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
-        [ASTNodeType.EOS]: this._generateEos.bind(this),
         [ASTNodeType.STRING_LITERAL]: this._generateStringLiteral.bind(this),
         [ASTNodeType.DOT]: this._generateDot.bind(this),
         [ASTNodeType.PIPE]: this._generatePipe.bind(this),
+        [ASTNodeType.BLOCK]: this._generateBlock.bind(this),
     } as const;
 
     private _parser: Parser;
@@ -52,7 +52,17 @@ export default class Generator {
      * @private
      */
     private _generateProgram(node: Program) {
-        return node.body.map(this.generate.bind(this)).join("");
+        let res: string = "";
+        for (let i = 0; i < node.body.length; i++) {
+            const subNode: ASTNode = node.body[i];
+            let subRes: string = this.generate(subNode);
+            if (subNode.type === ASTNodeType.BLOCK) {
+                res += subRes;
+                continue;
+            }
+            res += `${subRes};`;
+        }
+        return res;
     }
 
     /**
@@ -144,12 +154,22 @@ export default class Generator {
     }
 
     /**
-     * 生成结束
-     * @param _
+     * 生成块
+     * @param node
      * @private
      */
-    private _generateEos(_: Eos) {
-        return ";\n";
+    private _generateBlock(node: Block) {
+        let res: string = "{";
+        for (let i: number = 0; i < node.body.length; i++) {
+            const subNode: ASTNode = node.body[i];
+            let subRes: string = this.generate(subNode);
+            if (subNode.type === ASTNodeType.BLOCK) {
+                res += subRes;
+                continue;
+            }
+            res += `${subRes};`;
+        }
+        return `${res}}`;
     }
 
     /**

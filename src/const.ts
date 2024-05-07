@@ -15,12 +15,12 @@ export enum TokenType {
     STRING = "STRING",
     /** 运算符 */
     OPERATOR = "OPERATOR",
+    /** 分隔符 */
+    SEPARATOR = "SEPARATOR",
     /** 标识符 */
     IDENTIFIER = "IDENTIFIER",
-    /** 关键词 **/
+    /** 关键词 */
     KEYWORD = "KEYWORD",
-    /** 语句结束 */
-    EOS = "EOS",
     /** end of file */
     EOF = "EOF",
 }
@@ -67,8 +67,6 @@ export enum SymbolType {
 // 符号字符
 export const SYMBOL_SET: Readonly<Set<SymbolType>> = new Set<SymbolType>(Object.values(SymbolType));
 
-export const END_OF_STATEMENT: string = ";";
-
 export enum OperatorType {
     PLUS = "+",
     MINUS = "-",
@@ -101,6 +99,19 @@ export const BINARY_OPERATOR_SET: Readonly<Set<BinaryOperatorType>> = new Set<Bi
     Object.values(BinaryOperatorType),
 );
 
+export enum SeparatorType {
+    COMMA = ",",
+    COLON = ":",
+    SEMICOLON = ";",
+    LEFT_BRACKET = "(",
+    RIGHT_BRACKET = ")",
+    LEFT_BRACE = "{",
+    RIGHT_BRACE = "}",
+}
+
+// 分隔符
+export const SEPARATOR_SET: Readonly<Set<SeparatorType>> = new Set<SeparatorType>(Object.values(SeparatorType));
+
 export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType, string>>> = {
     [BinaryOperatorType.PLUS]: "+",
     [BinaryOperatorType.MINUS]: "-",
@@ -113,8 +124,6 @@ export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType
 };
 
 export enum ASTNodeType {
-    /** 语句结束 */
-    EOS = "EOS",
     /** 程序 */
     PROGRAM = "PROGRAM",
     /** 双目运算表达式 */
@@ -133,4 +142,6 @@ export enum ASTNodeType {
     DEFINITION = "DEFINITION",
     /** 点运算 */
     DOT = "DOT",
+    /** 块 */
+    BLOCK = "BLOCK",
 }

@@ -6,11 +6,12 @@
  */
 import Token from "./Token";
 import {
-    END_OF_STATEMENT,
     KEY_WORD_SET,
     KeyWordType,
     OPERATOR_SET,
     OperatorType,
+    SEPARATOR_SET,
+    SeparatorType,
     SYMBOL_SET,
     SymbolType,
     TokenType,
@@ -89,20 +90,29 @@ export default class Lexer {
         return TokenType.KEYWORD;
     }
 
-    symbol(): [TokenType, OperatorType | typeof END_OF_STATEMENT] {
+    symbol(): [TokenType, OperatorType | SeparatorType] {
         let res: string = "";
-        while (this._isSymbol()) {
-            res += this.curChar;
+        const char: string = this.curChar;
+        if (this._isLeftBrace(char) || this._isRightBrace(char)) {
+            res = char;
             this.advance();
+        } else {
+            while (this._isSymbol()) {
+                const char: string = this.curChar;
+                if (this._isLeftBrace(char) || this._isRightBrace(char)) {
+                    break;
+                }
+                res += char;
+                this.advance();
+            }
         }
-        if (res === END_OF_STATEMENT) {
-            return [TokenType.EOS, res];
+        if (SEPARATOR_SET.has(res as SeparatorType)) {
+            return [TokenType.SEPARATOR, res as SeparatorType];
         }
-        const type: TokenType = TokenType.OPERATOR;
-        if (!OPERATOR_SET.has(res as any)) {
-            throw new SyntaxError(`Unknown operator '${res}'`);
+        if (OPERATOR_SET.has(res as any)) {
+            return [TokenType.OPERATOR, res as OperatorType];
         }
-        return [type, res as OperatorType];
+        throw new SyntaxError(`Unknown symbol '${res}'`);
     }
 
     string() {
@@ -169,7 +179,7 @@ export default class Lexer {
     }
 
     private _isDoubleQuotation(char: string | null = this.curChar) {
-        return char != null && char === SymbolType.DOUBLE_QUOTATION;
+        return char === SymbolType.DOUBLE_QUOTATION;
     }
 
     private _isSymbol(char: string | null = this.curChar) {
@@ -177,10 +187,14 @@ export default class Lexer {
     }
 
     private _isDot(char: string | null = this.curChar) {
-        return (
-            char != null &&
-            char === SymbolType.DOT &&
-            this._tokens[this._tokens.length - 1].type === TokenType.IDENTIFIER
-        );
+        return char === SymbolType.DOT && this._tokens[this._tokens.length - 1].type === TokenType.IDENTIFIER;
+    }
+
+    private _isLeftBrace(char: string | null = this.curChar) {
+        return char === SymbolType.LEFT_BRACE;
+    }
+
+    private _isRightBrace(char: string | null = this.curChar) {
+        return char === SymbolType.RIGHT_BRACE;
     }
 }
