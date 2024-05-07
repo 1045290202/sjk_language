@@ -13,6 +13,8 @@ export enum TokenType {
     NUMBER = "NUMBER",
     /** 字符串 */
     STRING = "STRING",
+    /** 布尔值 */
+    BOOLEAN = "BOOLEAN",
     /** 运算符 */
     OPERATOR = "OPERATOR",
     /** 分隔符 */
@@ -28,6 +30,8 @@ export enum TokenType {
 // 程序关键词枚举
 export enum KeyWordType {
     DEF = "def",
+    TRUE = "true",
+    FALSE = "false",
 }
 
 // 程序关键词
@@ -136,6 +140,8 @@ export enum ASTNodeType {
     NUMBER_LITERAL = "NUMBER_LITERAL",
     /** 字符串字面量 */
     STRING_LITERAL = "STRING_LITERAL",
+    /** 布尔值字面量 */
+    BOOLEAN_LITERAL = "BOOLEAN_LITERAL",
     /** 标识符 */
     IDENTIFIER = "IDENTIFIER",
     /** 定义 */

@@ -145,6 +145,9 @@ export default class Lexer {
             }
             if (this._isLetter()) {
                 const str: string = this.identifier();
+                if (this._isBoolean(str)) {
+                    return new Token(TokenType.BOOLEAN, str);
+                }
                 if (this._isKeyWord(str)) {
                     return new Token(this.keyWord(str), str);
                 }
@@ -174,8 +177,12 @@ export default class Lexer {
         return char != null && char >= "a" && char <= "z";
     }
 
+    private _isBoolean(char: string): char is KeyWordType.TRUE | KeyWordType.FALSE {
+        return char === KeyWordType.TRUE || char === KeyWordType.FALSE;
+    }
+
     private _isKeyWord(char: string): char is KeyWordType {
-        return char != null && KEY_WORD_SET.has(char as any);
+        return KEY_WORD_SET.has(char as any);
     }
 
     private _isDoubleQuotation(char: string | null = this.curChar) {

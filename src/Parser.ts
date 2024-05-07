@@ -5,7 +5,15 @@
  * @Description Token解析器
  */
 import type Token from "./Token";
-import { ASTNodeType, BINARY_OPERATOR_SET, BinaryOperatorType, OperatorType, SeparatorType, TokenType } from "./const";
+import {
+    ASTNodeType,
+    BINARY_OPERATOR_SET,
+    BinaryOperatorType,
+    KeyWordType,
+    OperatorType,
+    SeparatorType,
+    TokenType,
+} from "./const";
 import Program from "./ast/Program";
 import NumberLiteral from "./ast/NumberLiteral";
 import ASTNode from "./ast/ASTNode";
@@ -17,11 +25,13 @@ import StringLiteral from "./ast/StringLiteral";
 import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
 import Block from "./ast/Block";
+import BooleanLiteral from "./ast/BooleanLiteral";
 
 export default class Parser {
     private _parseMap = {
         [TokenType.NUMBER]: this._parseNumber.bind(this),
         [TokenType.STRING]: this._parseString.bind(this),
+        [TokenType.BOOLEAN]: this._parseBoolean.bind(this),
         [TokenType.IDENTIFIER]: this._parseIdentifier.bind(this),
         [TokenType.OPERATOR]: this._parseOperator.bind(this),
         [TokenType.KEYWORD]: this._parseKeyword.bind(this),
@@ -62,6 +72,10 @@ export default class Parser {
 
     private _parseString(token: Token) {
         this._astNodeStack.push(new StringLiteral(token.value!));
+    }
+
+    private _parseBoolean(token: Token) {
+        this._astNodeStack.push(new BooleanLiteral(token.value as KeyWordType.TRUE | KeyWordType.FALSE));
     }
 
     private _parseIdentifier(token: Token) {

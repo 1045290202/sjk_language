@@ -18,6 +18,7 @@ import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
 import Block from "./ast/Block";
 import Judgement from "./ast/Judgement";
+import BooleanLiteral from "./ast/BooleanLiteral";
 
 export default class Generator {
     // 生成方法的映射
@@ -26,9 +27,10 @@ export default class Generator {
         [ASTNodeType.BINARY_EXPRESSION]: this._generateBinaryExpression.bind(this),
         [ASTNodeType.DEFINITION]: this._generateDefinition.bind(this),
         [ASTNodeType.ASSIGNMENT]: this._generateAssignment.bind(this),
-        [ASTNodeType.NUMBER_LITERAL]: this._generateNumberLiteral.bind(this),
         [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
+        [ASTNodeType.NUMBER_LITERAL]: this._generateNumberLiteral.bind(this),
         [ASTNodeType.STRING_LITERAL]: this._generateStringLiteral.bind(this),
+        [ASTNodeType.BOOLEAN_LITERAL]: this._generateBooleanLiteral.bind(this),
         [ASTNodeType.DOT]: this._generateDot.bind(this),
         [ASTNodeType.PIPE]: this._generatePipe.bind(this),
         [ASTNodeType.BLOCK]: this._generateBlock.bind(this),
@@ -117,6 +119,15 @@ export default class Generator {
      */
     private _generateStringLiteral(node: StringLiteral) {
         return `"${node.value}"`;
+    }
+
+    /**
+     * 生成布尔值
+     * @param node
+     * @private
+     */
+    private _generateBooleanLiteral(node: BooleanLiteral) {
+        return `${node.value}`;
     }
 
     /**
