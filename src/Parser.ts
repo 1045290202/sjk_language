@@ -145,7 +145,7 @@ export default class Parser {
                 break;
             }
             case SeparatorType.RIGHT_BRACE: {
-                break;
+                throw new SyntaxError("Unexpected '}'");
             }
         }
     }
