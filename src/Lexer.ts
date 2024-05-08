@@ -23,8 +23,12 @@ export default class Lexer {
     private _tokens: Token[] = [];
     private readonly _input: string | null = null;
 
-    get curChar(): string {
-        return this._input![this._pos];
+    get curChar(): string | null {
+        const codePoint = this._input?.codePointAt(this._pos);
+        if (codePoint == null) {
+            return null;
+        }
+        return String.fromCodePoint(codePoint);
     }
 
     get tokens(): readonly Token[] {
@@ -117,9 +121,9 @@ export default class Lexer {
         return res;
     }
 
-    identifier(): string | KeyWordType {
+    word(): string | KeyWordType {
         let res: string = "";
-        while (this._isLetter()) {
+        while (this.curChar != null && /[a-zA-Z0-9_$]/.test(this.curChar)) {
             res += this.curChar;
             this.advance();
         }
@@ -135,13 +139,13 @@ export default class Lexer {
 
     symbol(): [TokenType, OperatorType | SeparatorType] {
         let res: string = "";
-        const char: string = this.curChar;
+        const char: string = this.curChar!;
         if (this._isLeftBrace(char) || this._isRightBrace(char)) {
             res = char;
             this.advance();
         } else {
             while (this._isSymbol()) {
-                const char: string = this.curChar;
+                const char: string = this.curChar!;
                 if (this._isLeftBrace(char) || this._isRightBrace(char)) {
                     break;
                 }
@@ -188,8 +192,15 @@ export default class Lexer {
         if (this._isDigit()) {
             return new Token(TokenType.NUMBER, this.digit());
         }
+        if (this._isDoubleQuotation()) {
+            return new Token(TokenType.STRING, this.string());
+        }
+        if (this._isSymbol()) {
+            const [type, value] = this.symbol();
+            return new Token(type, value);
+        }
         if (this._isLetter()) {
-            const str: string = this.identifier();
+            const str: string = this.word();
             if (this._isBoolean(str)) {
                 return new Token(TokenType.BOOLEAN, str);
             }
@@ -197,13 +208,6 @@ export default class Lexer {
                 return new Token(this.keyWord(str), str);
             }
             return new Token(TokenType.IDENTIFIER, str);
-        }
-        if (this._isDoubleQuotation()) {
-            return new Token(TokenType.STRING, this.string());
-        }
-        if (this._isSymbol()) {
-            const [type, value] = this.symbol();
-            return new Token(type, value);
         }
         throw new SyntaxError(`Unexpected character '${this.curChar}'`);
     }
@@ -221,7 +225,7 @@ export default class Lexer {
     }
 
     private _isLetter(char: string | null = this.curChar) {
-        return char != null && char >= "a" && char <= "z";
+        return char != null && /[a-zA-Z_$]/.test(char);
     }
 
     private _isBoolean(char: string): char is KeyWordType.TRUE | KeyWordType.FALSE {
