@@ -57,7 +57,7 @@ export default class Lexer {
         let isSingleLineComment: boolean;
         while ((isWhitespace = this._isWhitespace()) || (isSingleLineComment = this._isSingleLineComment())) {
             if (isWhitespace) {
-                this.advance();
+                this.skipWhitespace();
                 continue;
             }
             this.skipComment();
