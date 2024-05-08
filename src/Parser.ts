@@ -108,6 +108,7 @@ export default class Parser {
 
     private _parseOperator(token: Token) {
         const lastToken: Token = this._tokens[this._tokenIndex - 1];
+        console.log(111, token, lastToken);
         if (
             UNARY_OPERATOR_SET.has(token.value as any) &&
             (!lastToken ||
