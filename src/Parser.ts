@@ -14,6 +14,8 @@ import {
     OperatorType,
     SeparatorType,
     TokenType,
+    UNARY_OPERATOR_SET,
+    UnaryOperatorType,
 } from "./const";
 import Program from "./ast/Program";
 import NumberLiteral from "./ast/NumberLiteral";
@@ -27,6 +29,7 @@ import Dot from "./ast/Dot";
 import Pipe from "./ast/Pipe";
 import Block from "./ast/Block";
 import BooleanLiteral from "./ast/BooleanLiteral";
+import UnaryExpression from "./ast/UnaryExpression";
 
 export default class Parser {
     private _parseMap = {
@@ -45,6 +48,7 @@ export default class Parser {
     private _ast: Program = new Program();
     private _astNodeStack: ASTNode[] = [];
     private _operatorStack: Token[] = [];
+    private _unaryOperatorStack: Token[] = [];
     private _tokenIndex: number = 0;
 
     get ast(): Readonly<typeof this._ast> {
@@ -103,7 +107,15 @@ export default class Parser {
     }
 
     private _parseOperator(token: Token) {
-        if (BINARY_OPERATOR_SET.has(token.value as any)) {
+        const lastToken: Token = this._tokens[this._tokenIndex - 1];
+        console.log(111, token, lastToken);
+        if (
+            UNARY_OPERATOR_SET.has(token.value as any) &&
+            (!lastToken ||
+                ![TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.IDENTIFIER].includes(lastToken.type))
+        ) {
+            this._unaryOperatorStack.push(token);
+        } else if (BINARY_OPERATOR_SET.has(token.value as any)) {
             this._parseBinaryOperate(token);
         } else if (token.value === OperatorType.DOT) {
             const before: ASTNode = this._astNodeStack[this._astNodeStack.length - 1];
@@ -127,8 +139,13 @@ export default class Parser {
         }
     }
 
+    /**
+     * 解析双目运算
+     * @param token
+     * @private
+     */
     private _parseBinaryOperate(token: Token) {
-        // 双目运算符
+        this._parseUnaryOperate();
         while (true) {
             if (this._operatorStack.length <= 0) {
                 break;
@@ -139,24 +156,21 @@ export default class Parser {
                 break;
             }
             this._operatorStack.pop();
-            const right = this._astNodeStack.pop()!;
-            const left = this._astNodeStack.pop()!;
-            switch (operator.value) {
-                case OperatorType.PIPE: {
-                    this._astNodeStack.push(new Pipe(left, right));
-                    break;
-                }
-                case BinaryOperatorType.ASSIGN: {
-                    this._astNodeStack.push(new Assignment(left, right));
-                    break;
-                }
-                default: {
-                    this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
-                    break;
-                }
-            }
+            this._handleBinary(operator);
         }
         this._operatorStack.push(token);
+    }
+
+    private _parseUnaryOperate() {
+        while (true) {
+            if (this._unaryOperatorStack.length <= 0) {
+                break;
+            }
+            const operator: Token = this._unaryOperatorStack.pop()!;
+            const subNode: ASTNode = this._astNodeStack.pop()!;
+            const unaryExpression: UnaryExpression = new UnaryExpression(operator.value as UnaryOperatorType, subNode);
+            this._astNodeStack.push(unaryExpression);
+        }
     }
 
     private _parseKeyword(_: Token) {
@@ -184,23 +198,28 @@ export default class Parser {
     }
 
     private _handleOperator() {
+        this._parseUnaryOperate();
         while (this._operatorStack.length > 0) {
             const operator = this._operatorStack.pop()!;
-            const right = this._astNodeStack.pop()!;
-            const left = this._astNodeStack.pop()!;
-            switch (operator.value) {
-                case OperatorType.PIPE: {
-                    this._astNodeStack.push(new Pipe(left, right));
-                    break;
-                }
-                case BinaryOperatorType.ASSIGN: {
-                    this._astNodeStack.push(new Assignment(left, right));
-                    break;
-                }
-                default: {
-                    this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
-                    break;
-                }
+            this._handleBinary(operator);
+        }
+    }
+
+    private _handleBinary(operator: Token) {
+        const right = this._astNodeStack.pop()!;
+        const left = this._astNodeStack.pop()!;
+        switch (operator.value) {
+            case OperatorType.PIPE: {
+                this._astNodeStack.push(new Pipe(left, right));
+                break;
+            }
+            case BinaryOperatorType.ASSIGN: {
+                this._astNodeStack.push(new Assignment(left, right));
+                break;
+            }
+            default: {
+                this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
+                break;
             }
         }
     }

@@ -66,6 +66,9 @@ export enum SymbolType {
     LEFT_BRACE = "{",
     RIGHT_BRACE = "}",
     DOT = ".",
+    COMMA = ",",
+    COLON = ":",
+    EXCLAMATION = "!",
 }
 
 // 符号字符
@@ -82,6 +85,7 @@ export enum OperatorType {
     ASSIGN = ">>",
     PIPE = "->",
     DOT = ".",
+    NOT = "!",
 }
 
 // 运算符
@@ -103,6 +107,17 @@ export const BINARY_OPERATOR_SET: Readonly<Set<BinaryOperatorType>> = new Set<Bi
     Object.values(BinaryOperatorType),
 );
 
+export enum UnaryOperatorType {
+    POSITIVE = OperatorType.PLUS,
+    NEGATIVE = OperatorType.MINUS,
+    NOT = OperatorType.NOT,
+}
+
+// 单目运算符
+export const UNARY_OPERATOR_SET: Readonly<Set<UnaryOperatorType>> = new Set<UnaryOperatorType>(
+    Object.values(UnaryOperatorType),
+);
+
 export enum SeparatorType {
     COMMA = ",",
     COLON = ":",
@@ -116,7 +131,7 @@ export enum SeparatorType {
 // 分隔符
 export const SEPARATOR_SET: Readonly<Set<SeparatorType>> = new Set<SeparatorType>(Object.values(SeparatorType));
 
-export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType, string>>> = {
+export const BINARY_OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType, string>>> = {
     [BinaryOperatorType.PLUS]: "+",
     [BinaryOperatorType.MINUS]: "-",
     [BinaryOperatorType.MULTIPLY]: "*",
@@ -127,11 +142,19 @@ export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType
     [BinaryOperatorType.ASSIGN]: "=",
 } as const;
 
+export const UNARY_OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<UnaryOperatorType, string>>> = {
+    [UnaryOperatorType.POSITIVE]: "+",
+    [UnaryOperatorType.NEGATIVE]: "-",
+    [UnaryOperatorType.NOT]: "!",
+};
+
 export enum ASTNodeType {
     /** 程序 */
     PROGRAM = "PROGRAM",
     /** 双目运算表达式 */
     BINARY_EXPRESSION = "BINARY_EXPRESSION",
+    /** 单目运算表达式 */
+    UNARY_EXPRESSION = "UNARY_EXPRESSION",
     /** 管道 */
     PIPE = "PIPE",
     /** 赋值 */
