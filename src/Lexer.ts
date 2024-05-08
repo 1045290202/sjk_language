@@ -131,38 +131,35 @@ export default class Lexer {
 
     // noinspection t
     getNextToken() {
-        while (this.curChar != null) {
-            if (this._isWhitespace()) {
-                this.skipWhitespace();
-                continue;
-            }
-            if (this._isDot()) {
-                this.advance();
-                return new Token(TokenType.OPERATOR, OperatorType.DOT);
-            }
-            if (this._isDigit()) {
-                return new Token(TokenType.NUMBER, this.digit());
-            }
-            if (this._isLetter()) {
-                const str: string = this.identifier();
-                if (this._isBoolean(str)) {
-                    return new Token(TokenType.BOOLEAN, str);
-                }
-                if (this._isKeyWord(str)) {
-                    return new Token(this.keyWord(str), str);
-                }
-                return new Token(TokenType.IDENTIFIER, str);
-            }
-            if (this._isDoubleQuotation()) {
-                return new Token(TokenType.STRING, this.string());
-            }
-            if (this._isSymbol()) {
-                const [type, value] = this.symbol();
-                return new Token(type, value);
-            }
-            throw new SyntaxError(`Unexpected character '${this.curChar}'`);
+        if (this.curChar == null) {
+            return new Token(TokenType.EOF, null);
         }
-        return new Token(TokenType.EOF, null);
+        this.skipWhitespace();
+        if (this._isDot()) {
+            this.advance();
+            return new Token(TokenType.OPERATOR, OperatorType.DOT);
+        }
+        if (this._isDigit()) {
+            return new Token(TokenType.NUMBER, this.digit());
+        }
+        if (this._isLetter()) {
+            const str: string = this.identifier();
+            if (this._isBoolean(str)) {
+                return new Token(TokenType.BOOLEAN, str);
+            }
+            if (this._isKeyWord(str)) {
+                return new Token(this.keyWord(str), str);
+            }
+            return new Token(TokenType.IDENTIFIER, str);
+        }
+        if (this._isDoubleQuotation()) {
+            return new Token(TokenType.STRING, this.string());
+        }
+        if (this._isSymbol()) {
+            const [type, value] = this.symbol();
+            return new Token(type, value);
+        }
+        throw new SyntaxError(`Unexpected character '${this.curChar}'`);
     }
 
     private _isWhitespace(char: string | null = this.curChar) {

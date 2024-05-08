@@ -6,7 +6,7 @@
  */
 import ASTNode from "./ast/ASTNode";
 import Parser from "./Parser";
-import { ASTNodeType, OPERATOR_TO_JS_OPERATOR } from "./const";
+import { ASTNodeType, BINARY_OPERATOR_TO_JS_OPERATOR, UNARY_OPERATOR_TO_JS_OPERATOR } from "./const";
 import Program from "./ast/Program";
 import BinaryExpression from "./ast/BinaryExpression";
 import Definition from "./ast/Definition";
@@ -19,12 +19,14 @@ import Pipe from "./ast/Pipe";
 import Block from "./ast/Block";
 import Judgement from "./ast/Judgement";
 import BooleanLiteral from "./ast/BooleanLiteral";
+import UnaryExpression from "./ast/UnaryExpression";
 
 export default class Generator {
     // 生成方法的映射
     private _generateMethodMap = {
         [ASTNodeType.PROGRAM]: this._generateProgram.bind(this),
         [ASTNodeType.BINARY_EXPRESSION]: this._generateBinaryExpression.bind(this),
+        [ASTNodeType.UNARY_EXPRESSION]: this._generateUnaryExpression.bind(this),
         [ASTNodeType.DEFINITION]: this._generateDefinition.bind(this),
         [ASTNodeType.ASSIGNMENT]: this._generateAssignment.bind(this),
         [ASTNodeType.IDENTIFIER]: this._generateIdentifier.bind(this),
@@ -77,9 +79,28 @@ export default class Generator {
     private _generateBinaryExpression(node: BinaryExpression) {
         // switch (node.operator) {
         //     default: {
-        return `${this.generate(node.left)} ${OPERATOR_TO_JS_OPERATOR[node.operator]} ${this.generate(node.right)}`;
+        if (!node.left || !node.right) {
+            throw new SyntaxError("Missing operand");
+        }
+        return `${this.generate(node.left)} ${BINARY_OPERATOR_TO_JS_OPERATOR[node.operator]} ${this.generate(node.right)}`;
         //     }
         // }
+    }
+
+    /**
+     * 生成单目运算
+     * @param node
+     * @private
+     */
+    private _generateUnaryExpression(node: UnaryExpression) {
+        if (!node.sub) {
+            throw new SyntaxError("Missing operand");
+        }
+        if (node.sub.type === ASTNodeType.UNARY_EXPRESSION) {
+            // 如果子节点也是单目运算符，将子节点用括号括起来，不然js可能会报错
+            return `${UNARY_OPERATOR_TO_JS_OPERATOR[node.operator]}(${this.generate(node.sub)})`;
+        }
+        return `${UNARY_OPERATOR_TO_JS_OPERATOR[node.operator]}${this.generate(node.sub)}`;
     }
 
     /**

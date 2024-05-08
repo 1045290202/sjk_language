@@ -2,7 +2,7 @@
  * @Author SJK
  * @Time 2024/4/30 上午10:14
  * @File BinaryExpression.ts
- * @Description pass
+ * @Description 双目运算表达式
  */
 import ASTNode from "./ASTNode";
 import { ASTNodeType, BinaryOperatorType } from "../const";
