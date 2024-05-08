@@ -52,8 +52,36 @@ export default class Lexer {
         this._pos++;
     }
 
+    skipUseless() {
+        let isWhitespace: boolean;
+        let isSingleLineComment: boolean;
+        while ((isWhitespace = this._isWhitespace()) || (isSingleLineComment = this._isSingleLineComment())) {
+            if (isWhitespace) {
+                this.advance();
+                continue;
+            }
+            this.skipComment();
+        }
+    }
+
+    /**
+     * 跳过空白字符
+     */
     skipWhitespace() {
         while (this._isWhitespace()) {
+            this.advance();
+        }
+    }
+
+    /**
+     * 跳过注释
+     */
+    skipComment() {
+        if (!this._isSingleLineComment()) {
+            return;
+        }
+        this.advance();
+        while (this.curChar !== "\n") {
             this.advance();
         }
     }
@@ -129,12 +157,15 @@ export default class Lexer {
         return res;
     }
 
+    /**
+     * 获取下一个token
+     */
     // noinspection t
     getNextToken() {
         if (this.curChar == null) {
             return new Token(TokenType.EOF, null);
         }
-        this.skipWhitespace();
+        this.skipUseless();
         if (this._isDot()) {
             this.advance();
             return new Token(TokenType.OPERATOR, OperatorType.DOT);
@@ -164,6 +195,10 @@ export default class Lexer {
 
     private _isWhitespace(char: string | null = this.curChar) {
         return char != null && WHITESPACE_SET.has(char as any);
+    }
+
+    private _isSingleLineComment(char: string | null = this.curChar) {
+        return char === "#";
     }
 
     private _isDigit(char: string | null = this.curChar) {
