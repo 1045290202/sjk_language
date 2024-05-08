@@ -78,7 +78,7 @@ export enum OperatorType {
     DIVIDE = "/",
     GREATER = ">",
     LESS = "<",
-    EQUAL = "=",
+    EQUAL = "==",
     ASSIGN = ">>",
     PIPE = "->",
     DOT = ".",
@@ -123,9 +123,9 @@ export const OPERATOR_TO_JS_OPERATOR: Readonly<Partial<Record<BinaryOperatorType
     [BinaryOperatorType.DIVIDE]: "/",
     [BinaryOperatorType.GREATER]: ">",
     [BinaryOperatorType.LESS]: "<",
-    [BinaryOperatorType.EQUAL]: "==",
+    [BinaryOperatorType.EQUAL]: "===",
     [BinaryOperatorType.ASSIGN]: "=",
-};
+} as const;
 
 export enum ASTNodeType {
     /** 程序 */
@@ -153,3 +153,15 @@ export enum ASTNodeType {
     /** 判断 */
     JUDGEMENT = "JUDGEMENT",
 }
+
+// 运算符优先级
+export const OPERATOR_PRECEDENCE = {
+    [BinaryOperatorType.ASSIGN]: 1,
+    [BinaryOperatorType.EQUAL]: 2,
+    [BinaryOperatorType.PLUS]: 3,
+    [BinaryOperatorType.MINUS]: 3,
+    [BinaryOperatorType.MULTIPLY]: 4,
+    [BinaryOperatorType.DIVIDE]: 4,
+    [BinaryOperatorType.GREATER]: 5,
+    [BinaryOperatorType.LESS]: 5,
+} as const;

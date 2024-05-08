@@ -10,6 +10,7 @@ import {
     BINARY_OPERATOR_SET,
     BinaryOperatorType,
     KeyWordType,
+    OPERATOR_PRECEDENCE,
     OperatorType,
     SeparatorType,
     TokenType,
@@ -103,9 +104,7 @@ export default class Parser {
 
     private _parseOperator(token: Token) {
         if (BINARY_OPERATOR_SET.has(token.value as any)) {
-            // 双目运算符
-            this._handleOperator();
-            this._operatorStack.push(token);
+            this._parseBinaryOperate(token);
         } else if (token.value === OperatorType.DOT) {
             const before: ASTNode = this._astNodeStack[this._astNodeStack.length - 1];
             const dot: Dot = new Dot();
@@ -126,6 +125,38 @@ export default class Parser {
         } else {
             this._handleOperator();
         }
+    }
+
+    private _parseBinaryOperate(token: Token) {
+        // 双目运算符
+        while (true) {
+            if (this._operatorStack.length <= 0) {
+                break;
+            }
+            const operator: Token = this._operatorStack[this._operatorStack.length - 1];
+            type KOP = keyof typeof OPERATOR_PRECEDENCE;
+            if (OPERATOR_PRECEDENCE[operator.value as KOP] < OPERATOR_PRECEDENCE[token.value as KOP]) {
+                break;
+            }
+            this._operatorStack.pop();
+            const right = this._astNodeStack.pop()!;
+            const left = this._astNodeStack.pop()!;
+            switch (operator.value) {
+                case OperatorType.PIPE: {
+                    this._astNodeStack.push(new Pipe(left, right));
+                    break;
+                }
+                case BinaryOperatorType.ASSIGN: {
+                    this._astNodeStack.push(new Assignment(left, right));
+                    break;
+                }
+                default: {
+                    this._astNodeStack.push(new BinaryExpression(left, operator.value as any, right));
+                    break;
+                }
+            }
+        }
+        this._operatorStack.push(token);
     }
 
     private _parseKeyword(_: Token) {
