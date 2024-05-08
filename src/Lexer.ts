@@ -81,6 +81,20 @@ export default class Lexer {
             return;
         }
         this.advance();
+        if (this._isSingleLineComment()) {
+            // 当出现两个连续的单行注释符号时，判断为多行注释，即 ## ... ##
+            let chars: string;
+            // 跳过多行注释
+            do {
+                chars = "";
+                this.advance();
+                chars += this.curChar;
+                this.advance();
+                chars += this.curChar;
+            } while (chars !== "##");
+            return;
+        }
+        // 跳过单行注释
         while (this.curChar !== "\n") {
             this.advance();
         }
