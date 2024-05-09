@@ -85,7 +85,7 @@ export default class Lexer {
             return;
         }
         this.advance();
-        if (this._isSingleLineComment()) {
+        if (this.curChar === "$") {
             // 当出现两个连续的单行注释符号时，判断为多行注释，即 ## ... ##
             let chars: string = "";
             // 跳过多行注释
@@ -93,14 +93,15 @@ export default class Lexer {
                 chars = chars.length <= 1 ? chars : chars.substring(1);
                 this.advance();
                 chars += this.curChar ?? "";
-            } while (chars !== "##" && this.curChar != null);
+            } while (chars !== "$#" && this.curChar != null);
             if (chars.length < 2) {
                 throw new SyntaxError("Invalid comment");
             }
+            this.advance();
             return;
         }
         // 跳过单行注释
-        while (this.curChar !== "\n") {
+        while (this.curChar != null && this.curChar !== "\n") {
             this.advance();
         }
     }
@@ -181,10 +182,10 @@ export default class Lexer {
      */
     // noinspection t
     getNextToken() {
+        this.skipUseless();
         if (this.curChar == null) {
             return new Token(TokenType.EOF, null);
         }
-        this.skipUseless();
         if (this._isDot()) {
             this.advance();
             return new Token(TokenType.OPERATOR, OperatorType.DOT);
