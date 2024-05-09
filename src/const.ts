@@ -43,6 +43,11 @@ export enum WhitespaceType {
     TAB = "\t",
     NEWLINE = "\n",
     CARRIAGE_RETURN = "\r",
+    VERTICAL_TAB = "\v",
+    FORM_FEED = "\f",
+    BACKSPACE = "\b",
+    NULL = "\0",
+    CARRIAGE_RETURN_AND_NEWLINE = "\r\n",
 }
 
 // 空白字符
