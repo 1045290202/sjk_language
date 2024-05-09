@@ -16,16 +16,19 @@ import {
     SymbolType,
     TokenType,
     WHITESPACE_SET,
-    WhitespaceType,
 } from "./const";
 
 export default class Lexer {
     private _pos: number = 0;
     private _tokens: Token[] = [];
-    private readonly _inputSegments: Intl.SegmentData[];
+    private readonly _input: string | null = null;
 
     get curChar(): string | null {
-        return this._inputSegments[this._pos]?.segment ?? null;
+        const codePoint = this._input?.codePointAt(this._pos);
+        if (codePoint == null) {
+            return null;
+        }
+        return String.fromCodePoint(codePoint);
     }
 
     get tokens(): readonly Token[] {
@@ -33,7 +36,7 @@ export default class Lexer {
     }
 
     constructor(input: string) {
-        this._inputSegments = [...new Intl.Segmenter().segment(input)];
+        this._input = input;
     }
 
     /**
@@ -85,25 +88,20 @@ export default class Lexer {
         if (this.curChar === "$") {
             // 当出现两个连续的单行注释符号时，判断为多行注释，即 ## ... ##
             let chars: string = "";
-            let isEnd: boolean = false;
             // 跳过多行注释
             do {
+                chars = chars.length <= 1 ? chars : chars.substring(1);
                 this.advance();
                 chars += this.curChar ?? "";
-                isEnd = chars.substring(chars.length - 2) === "$#";
-            } while (!isEnd && this.curChar != null);
-            if (!isEnd) {
+            } while (chars !== "$#" && this.curChar != null);
+            if (chars.length < 2) {
                 throw new SyntaxError("Invalid comment");
             }
             this.advance();
             return;
         }
         // 跳过单行注释
-        while (
-            this.curChar != null &&
-            this.curChar !== WhitespaceType.CARRIAGE_RETURN_AND_NEWLINE &&
-            this.curChar !== WhitespaceType.NEWLINE
-        ) {
+        while (this.curChar != null && this.curChar !== "\n") {
             this.advance();
         }
     }
