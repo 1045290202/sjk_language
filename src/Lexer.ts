@@ -21,14 +21,10 @@ import {
 export default class Lexer {
     private _pos: number = 0;
     private _tokens: Token[] = [];
-    private readonly _input: string | null = null;
+    private readonly _inputSplit: string[] | null = null;
 
     get curChar(): string | null {
-        const codePoint = this._input?.codePointAt(this._pos);
-        if (codePoint == null) {
-            return null;
-        }
-        return String.fromCodePoint(codePoint);
+        return this._inputSplit![this._pos] ?? null;
     }
 
     get tokens(): readonly Token[] {
@@ -36,7 +32,7 @@ export default class Lexer {
     }
 
     constructor(input: string) {
-        this._input = input;
+        this._inputSplit = [...input];
     }
 
     /**
